@@ -1,0 +1,50 @@
+name: 'Deploy to ECS'
+description: 'Logins to AWS, creates task definition, and updates a service to use it'
+inputs:
+  aws-region:
+    description: 'AWS Region'
+    default: 'eu-west-2'
+    required: false
+  aws-access-key-id:
+    description: 'AWS IAM User Access Key'
+    required: true
+  aws-secret-access-key:
+    description: 'AWS IAM User Secret Key'
+    required: true
+  cluster:
+    description: 'ECS Cluster Name'
+    required: true
+  service:
+    description: 'ECS Service Name'
+    required: true
+  docker-image-tag:
+    description: 'Docker image tag'
+    required: true
+  task-definition-file:
+    description: 'Path to the task definition file inside the repository'
+    required: true
+  container-name:
+    description: 'Name of the container that needs to be updated with the given docker image in the task definition'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: ${{ inputs.aws-region }}
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@97587c9d45a4930bf0e3da8dd2feb2a463cf4a3a
+      with:
+        container-name: ${{ inputs.container-name }}
+        task-definition: ${{ inputs.task-definition-file }}
+        image: ${{ inputs.docker-image-tag }}
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@de0132cf8cdedb79975c6d42b77eb7ea193cf28e
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        wait-for-service-stability: true
+        cluster: ${{ inputs.cluster }}
+        service: ${{ inputs.service }}
