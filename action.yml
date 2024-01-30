@@ -29,20 +29,20 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: aws-actions/configure-aws-credentials@v1
+    - uses: aws-actions/configure-aws-credentials@v4.0.1
       with:
         aws-region: ${{ inputs.aws-region }}
         aws-access-key-id: ${{ inputs.aws-access-key-id }}
         aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
-      uses: aws-actions/amazon-ecs-render-task-definition@v1.1.1
+      uses: aws-actions/amazon-ecs-render-task-definition@v1.2.0
       with:
         container-name: ${{ inputs.container-name }}
         task-definition: ${{ inputs.task-definition-file }}
         image: ${{ inputs.docker-image-tag }}
     - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1.4.10
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1.4.11
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
         wait-for-service-stability: true
